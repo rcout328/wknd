@@ -2,14 +2,16 @@
 
 import { useState } from 'react';
 import Image from 'next/image'
-import { Search, ShoppingBag, ChevronRight, Instagram, Facebook, Twitter, Menu, X } from 'lucide-react'
+import { Search, ShoppingBag, ChevronRight, Menu, X } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Footer from './Footer'; // Import the new Footer component
+import Footer from './Footer';
+import Header from './Header';
 import SidebarMenu from './SidebarMenu';
+import MenuComponent from '@/components/Menu'; // Ensure this matches the export
 
 // Array of cake objects with names, descriptions, and images
 const cakes = [
@@ -45,42 +47,17 @@ const cakes = [
   },
 ];
 
-export function WkndCakeShop() {
+function WkndCakeShop() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-3xl font-bold text-pink-500">WKND</div>
-          <nav className="hidden md:flex space-x-8">
-            <a href="#" className="text-gray-700 hover:text-pink-500 transition-colors">Home</a>
-            <a href="#" className="text-gray-700 hover:text-pink-500 transition-colors">Menu</a>
-            <a href="#" className="text-gray-700 hover:text-pink-500 transition-colors">About</a>
-            <a href="#" className="text-gray-700 hover:text-pink-500 transition-colors">Contact</a>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <Input className="hidden md:block" placeholder="Search" type="search" />
-            <Button size="icon" variant="ghost">
-              <Search className="h-5 w-5 text-gray-700" />
-              <span className="sr-only">Search</span>
-            </Button>
-            <Button size="icon" variant="ghost" className="bg-orange-100 text-orange-500">
-              <ShoppingBag className="h-5 w-5" />
-              <span className="sr-only">Cart</span>
-            </Button>
-            <Button size="icon" variant="ghost" onClick={toggleSidebar} className="md:hidden">
-              <Menu className="h-5 w-5 text-gray-700" />
-              <span className="sr-only">Menu</span>
-            </Button>
-          </div>
-        </div>
-      </header>
-      <main className="container mx-auto px-6 py-16">
-        <section
-          className="flex flex-col md:flex-row items-center justify-between gap-12 mb-24">
+      <Header toggleSidebar={toggleSidebar} />
+      <SidebarMenu isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="container mx-auto px-4 py-8">
+        <section className="flex flex-col md:flex-row items-center justify-between gap-12 mb-24">
           <div className="md:w-1/2 space-y-8">
             <h1 className="text-6xl font-bold text-gray-800 leading-tight">
               Indulge in <span className="text-pink-500">Heavenly</span> Cakes
@@ -103,7 +80,7 @@ export function WkndCakeShop() {
           </div>
           <div className="md:w-1/2 flex justify-center md:justify-end relative">
             <Image
-              src="https://cdn.igp.com/f_auto,q_auto,t_pnopt19prodlp/products/p-classic-red-velvet-cake-half-kg--109230-m.jpg" // Ensure this is the correct URL
+              src="https://cdn.igp.com/f_auto,q_auto,t_pnopt19prodlp/products/p-classic-red-velvet-cake-half-kg--109230-m.jpg"
               alt="Delicious cake"
               width={600}
               height={600}
@@ -128,14 +105,14 @@ export function WkndCakeShop() {
               {cakes.map((cake, index) => (
                 <Card key={index} className="overflow-hidden">
                   <Image
-                    src={cake.image} // Use the image URL from the array
+                    src={cake.image}
                     alt={cake.name}
                     width={400}
                     height={300}
                     className="w-full h-48 object-cover" />
                   <CardContent className="p-4">
-                    <h3 className="text-xl font-semibold mb-2">{cake.name}</h3> {/* Cake name */}
-                    <p className="text-gray-600 mb-4">{cake.description}</p> {/* Cake description */}
+                    <h3 className="text-xl font-semibold mb-2">{cake.name}</h3>
+                    <p className="text-gray-600 mb-4">{cake.description}</p>
                     <Button className="w-full">Order Now</Button>
                   </CardContent>
                 </Card>
@@ -146,8 +123,7 @@ export function WkndCakeShop() {
         </section>
 
         <section className="mb-24">
-          <div
-            className="bg-pink-100 rounded-3xl p-12 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="bg-pink-100 rounded-3xl p-12 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="md:w-1/2">
               <h2 className="text-4xl font-bold mb-4">Custom Cake Design</h2>
               <p className="text-xl text-gray-700 mb-8">
@@ -159,7 +135,7 @@ export function WkndCakeShop() {
             </div>
             <div className="md:w-1/2">
               <Image
-                src="https://cdn.leonardo.ai/users/326f8494-f765-49cb-a889-d303538d931e/generations/5c3412c9-c329-4133-922a-078ab60afa0e/Leonardo_Phoenix_A_stunning_multitiered_cake_designed_with_int_1.jpg" // Updated to the new image URL
+                src="https://cdn.leonardo.ai/users/326f8494-f765-49cb-a889-d303538d931e/generations/5c3412c9-c329-4133-922a-078ab60afa0e/Leonardo_Phoenix_A_stunning_multitiered_cake_designed_with_int_1.jpg"
                 alt="Custom Cake Design"
                 width={500}
                 height={400}
@@ -189,23 +165,8 @@ export function WkndCakeShop() {
         </section>
       </main>
       <Footer />
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 right-0 z-50 w-64 bg-pink-100 bg-opacity-70 backdrop-blur-md shadow-lg transform ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out`}>
-        <div className="flex justify-end p-4">
-          <Button variant="ghost" onClick={toggleSidebar}>
-            <X className="h-6 w-6 text-pink-600" />
-          </Button>
-        </div>
-        <nav className="px-4">
-          <ul className="space-y-4">
-            <li><a href="#" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Home</a></li>
-            <li><a href="#" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Menu</a></li>
-            <li><a href="#" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Custom Cakes</a></li>
-            <li><a href="#" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">About Us</a></li>
-            <li><a href="#" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Contact</a></li>
-          </ul>
-        </nav>
-      </div>
     </div>
   );
 }
+
+export default WkndCakeShop;

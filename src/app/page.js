@@ -1,10 +1,5 @@
-import { WkndCakeShop } from '@/components/wknd-cake-shop'
-import React from 'react'
+import WkndCakeShop from '@/components/wknd-cake-shop'
 
-function Home() {
-  return (
-    <div> <WkndCakeShop /></div>
-  )
+export default function Home() {
+  return <WkndCakeShop />
 }
-
-export default Home

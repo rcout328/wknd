@@ -2,7 +2,7 @@
 const nextConfig = {
     reactStrictMode: true,
     images: {
-        domains: ['files.oaiusercontent.com', 'cdn.igp.com','cdn.leonardo.ai'], // Add the new hostname here
+        domains: ['files.oaiusercontent.com', 'cdn.igp.com', 'cdn.leonardo.ai'], // Add any other domains you are using
     },
     // ... other configurations ...
 }
