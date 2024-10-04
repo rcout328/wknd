@@ -1,13 +1,15 @@
 'use client'
 
+import { useState } from 'react';
 import Image from 'next/image'
-import { Search, ShoppingBag, ChevronRight, Instagram, Facebook, Twitter } from 'lucide-react'
+import { Search, ShoppingBag, ChevronRight, Instagram, Facebook, Twitter, Menu, X } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Footer from './Footer'; // Import the new Footer component
+import SidebarMenu from './SidebarMenu';
 
 // Array of cake objects with names, descriptions, and images
 const cakes = [
@@ -44,8 +46,12 @@ const cakes = [
 ];
 
 export function WkndCakeShop() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
   return (
-    (<div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="text-3xl font-bold text-pink-500">WKND</div>
@@ -64,6 +70,10 @@ export function WkndCakeShop() {
             <Button size="icon" variant="ghost" className="bg-orange-100 text-orange-500">
               <ShoppingBag className="h-5 w-5" />
               <span className="sr-only">Cart</span>
+            </Button>
+            <Button size="icon" variant="ghost" onClick={toggleSidebar} className="md:hidden">
+              <Menu className="h-5 w-5 text-gray-700" />
+              <span className="sr-only">Menu</span>
             </Button>
           </div>
         </div>
@@ -179,6 +189,23 @@ export function WkndCakeShop() {
         </section>
       </main>
       <Footer />
-    </div>)
+      {/* Sidebar */}
+      <div className={`fixed inset-y-0 right-0 z-50 w-64 bg-pink-100 bg-opacity-70 backdrop-blur-md shadow-lg transform ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out`}>
+        <div className="flex justify-end p-4">
+          <Button variant="ghost" onClick={toggleSidebar}>
+            <X className="h-6 w-6 text-pink-600" />
+          </Button>
+        </div>
+        <nav className="px-4">
+          <ul className="space-y-4">
+            <li><a href="#" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Home</a></li>
+            <li><a href="#" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Menu</a></li>
+            <li><a href="#" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Custom Cakes</a></li>
+            <li><a href="#" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">About Us</a></li>
+            <li><a href="#" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
   );
 }
