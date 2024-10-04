@@ -141,7 +141,7 @@ export function WkndCakeShop() {
             <div className="md:w-1/2">
               <h2 className="text-4xl font-bold mb-4">Custom Cake Design</h2>
               <p className="text-xl text-gray-700 mb-8">
-                Dream it, and we'll bake it! Our expert bakers can create the perfect custom cake for your special occasion.
+                Dream it, and we&apos;ll bake it! Our expert bakers can create the perfect custom cake for your special occasion.
               </p>
               <Button size="lg" className="bg-pink-500 hover:bg-pink-600 text-white">
                 Start Designing
