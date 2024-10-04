@@ -31,7 +31,7 @@ export function AboutUsComponent() {
             </div>
             <div className="md:w-1/2 space-y-6">
               <p className="text-lg text-gray-700">
-                Founded in 2010, WKND Cakes started as a small passion project in a tiny kitchen. Today, we've grown into a beloved local bakery, known for our artisanal cakes and commitment to quality.
+                Founded in 2010, WKND Cakes started as a small passion project in a tiny kitchen. Today, we&apos;ve grown into a beloved local bakery, known for our artisanal cakes and commitment to quality.
               </p>
               <p className="text-lg text-gray-700">
                 Our mission is simple: to spread joy through delicious, handcrafted cakes. Every creation is a labor of love, made with the finest ingredients and a dash of magic.
