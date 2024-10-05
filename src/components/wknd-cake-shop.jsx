@@ -1,57 +1,43 @@
 'use client'
 
-import { useState } from 'react';
-import Image from 'next/image'
-import { Search, ShoppingBag, ChevronRight, Menu, X } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { Search, ShoppingBag, ChevronRight, Menu, X } from 'lucide-react';
 import Link from 'next/link'; // Import Link from next/link
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Footer from './Footer';
 import Header from './Header';
 import SidebarMenu from './SidebarMenu';
-import MenuComponent from '@/components/Menu'; // Ensure this matches the export
+import { supabase } from "@/lib/supabaseClient"; // Import the Supabase client
 
-// Array of cake objects with names, descriptions, and images
-const cakes = [
-  {
-    name: "Gourmet Cheesecake",
-    description: "A rich and creamy cheesecake topped with fresh berries.",
-    image: "https://cdn.leonardo.ai/users/326f8494-f765-49cb-a889-d303538d931e/generations/3c83e2fd-f499-4960-bc1e-33418257f740/Leonardo_Phoenix_A_beautiful_gourmet_cheesecake_placed_on_an_e_2.jpg"
-  },
-  {
-    name: "Chocolatey Delight",
-    description: "A decadent chocolate cake with layers of rich chocolate frosting.",
-    image: "https://cdn.leonardo.ai/users/326f8494-f765-49cb-a889-d303538d931e/generations/027d40d2-1cf7-4389-863e-121998db024e/Leonardo_Phoenix_A_beautiful_gourmet_chocolatey_caked_placed_o_1.jpg"
-  },
-  {
-    name: "Waffle Cake",
-    description: "A unique cake made with fluffy waffles and maple syrup.",
-    image: "https://cdn.leonardo.ai/users/326f8494-f765-49cb-a889-d303538d931e/generations/281e2dc7-9a3b-47c9-bca4-e87b1743e6dc/Leonardo_Phoenix_A_beautiful_gourmet_waffle_caked_placed_on_an_0.jpg"
-  },
-  {
-    name: "Strawberry Shortcake",
-    description: "A light and fluffy cake layered with fresh strawberries and whipped cream.",
-    image: "https://cdn.leonardo.ai/users/326f8494-f765-49cb-a889-d303538d931e/generations/432cd102-61e8-4eaf-a97e-74299a084d05/Leonardo_Phoenix_A_beautiful_gourmem_strawberry_caked_placed_o_0.jpg"
-  },
-  {
-    name: "Classic Red Velvet",
-    description: "A classic red velvet cake with cream cheese frosting.",
-    image: "https://cdn.leonardo.ai/users/326f8494-f765-49cb-a889-d303538d931e/generations/3c83e2fd-f499-4960-bc1e-33418257f740/Leonardo_Phoenix_A_beautiful_gourmet_cheesecake_placed_on_an_e_3.jpg"
-  },
-  {
-    name: "Lemon Drizzle Cake",
-    description: "A zesty lemon cake drizzled with a sweet lemon glaze.",
-    image: "https://cdn.leonardo.ai/users/326f8494-f765-49cb-a889-d303538d931e/generations/432cd102-61e8-4eaf-a97e-74299a084d05/Leonardo_Phoenix_A_beautiful_gourmem_strawberry_caked_placed_o_3.jpg"
-  },
-];
+const menuCategories = ['All', 'Cakes', 'Cupcakes', 'Pastries', 'Seasonal'];
 
 function WkndCakeShop() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [menuItems, setMenuItems] = useState([]); // State to hold menu items
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  // Fetch menu items from Supabase
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      const { data, error } = await supabase
+        .from('menu') // Table name
+        .select('*'); // Columns to fetch
+
+      if (error) {
+        console.error('Error fetching menu items:', error);
+      } else {
+        console.log('Fetched menu items:', data); // Log the fetched data
+        setMenuItems(data); // Set the fetched data to state
+      }
+    };
+
+    fetchMenuItems();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
@@ -67,8 +53,8 @@ function WkndCakeShop() {
               Experience the magic of our handcrafted cakes, baked with love and the finest ingredients. Perfect for any occasion or just because you deserve a treat!
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/product-details"> {/* Link to product details page */}
-                <Button size="lg" className="bg-pink-500 hover:bg-pink-600 text-white w-full">
+              <Link href="/product-details">
+                <Button size="lg" className="bg-pink-500 hover:bg-pink-600 text-white">
                   Order Now
                 </Button>
               </Link>
@@ -97,34 +83,53 @@ function WkndCakeShop() {
 
         <section className="mb-24">
           <h2 className="text-4xl font-bold text-center mb-12">Our Signature Cakes</h2>
-          <Tabs defaultValue="all" className="w-full">
+          <Tabs defaultValue="All" className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-8">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="birthday">Birthday</TabsTrigger>
-              <TabsTrigger value="wedding">Wedding</TabsTrigger>
-              <TabsTrigger value="custom">Custom</TabsTrigger>
+              {menuCategories.map((category) => (
+                <TabsTrigger key={category} value={category}>
+                  {category}
+                </TabsTrigger>
+              ))}
             </TabsList>
-            <TabsContent value="all" className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {cakes.map((cake, index) => (
-                <Card key={index} className="overflow-hidden">
+            <TabsContent value="All" className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {menuItems.map((item) => (
+                <Card key={item.id} className="overflow-hidden">
                   <Image
-                    src={cake.image}
-                    alt={cake.name}
+                    src={item.image}
+                    alt={item.name}
                     width={400}
                     height={300}
                     className="w-full h-48 object-cover" />
                   <CardContent className="p-4">
-                    <h3 className="text-xl font-semibold mb-2">{cake.name}</h3>
-                    <p className="text-gray-600 mb-4">{cake.description}</p>
-                    <Button className="w-full"><Link href="product-details">Order Now</Link></Button>
+                    <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
+                    <p className="text-gray-600 mb-4">{item.desc}</p>
+                    <Button className="w-full">Order Now</Button>
                   </CardContent>
                 </Card>
               ))}
             </TabsContent>
             {/* Add similar TabsContent for other categories */}
+            {menuCategories.slice(1).map((category) => (
+              <TabsContent key={category} value={category} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {menuItems.filter(item => item.cat === category).map((item) => (
+                  <Card key={item.id} className="overflow-hidden">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      width={400}
+                      height={300}
+                      className="w-full h-48 object-cover" />
+                    <CardContent className="p-4">
+                      <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
+                      <p className="text-gray-600 mb-4">{item.desc}</p>
+                      <Button className="w-full">Order Now</Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </TabsContent>
+            ))}
           </Tabs>
         </section>
-
         <section className="mb-24">
           <div className="bg-pink-100 rounded-3xl p-12 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="md:w-1/2">

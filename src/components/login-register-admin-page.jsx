@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Eye, EyeOff, Lock, Mail, User, ShieldCheck, ArrowLeft } from 'lucide-react'
-import Link from 'next/link' // Import Link from next/link
+import Link from 'next/link'
+import { supabase } from "@/lib/supabaseClient";
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,12 +14,86 @@ import { Checkbox } from "@/components/ui/checkbox"
 
 export function LoginRegisterAdminPageComponent() {
   const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+
+  useEffect(() => {
+    // Check local storage for email on mount
+    const storedEmail = localStorage.getItem('userEmail');
+    if (storedEmail) {
+      // Redirect to home or admin home based on stored email
+      if (storedEmail === 'admin123@gmail.com') {
+        window.location.href = '/admin-dashboard'; // Redirect to admin home
+      } else {
+        window.location.href = '/'; // Redirect to home
+      }
+    }
+  }, []);
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword)
 
+  const handleLogin = async (e) => {
+    e.preventDefault()
+    const { data, error } = await supabase
+      .from('User')
+      .select()
+      .eq('emailid', email)
+      .eq('password', password)
+      .single()
+
+    if (error) {
+      console.error('Login error:', error.message)
+      alert('Login failed. Please check your credentials.')
+    } else if (data) {
+      console.log('Logged in user:', data)
+      localStorage.setItem('userEmail', data.emailid); // Store the email in local storage
+      // Redirect based on user role
+      if (data.emailid === 'admin123@gmail.com') {
+        window.location.href = '/admin-dashboard'; // Redirect to admin home
+      } else {
+        window.location.href = '/'; // Redirect to home
+      }
+    } else {
+      alert('Invalid email or password')
+    }
+  }
+
+  const handleRegister = async (e) => {
+    e.preventDefault()
+    const { data, error } = await supabase
+      .from('User')
+      .insert([
+        { emailid: email, password: password }
+      ])
+
+    if (error) {
+      console.error('Registration error:', error.message)
+      alert('Registration failed. Please try again.')
+    } else {
+      console.log('Registered user:', data)
+      alert('Registration successful! Please log in.')
+      // Clear the form fields
+      setEmail('')
+      setPassword('')
+      setFullName('')
+    }
+  }
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault()
+    // Use the email and password state variables
+    if (email === 'admin123@gmail.com' && password === '12345') {
+      console.log('Admin logged in')
+      localStorage.setItem('userEmail', email); // Store the email in local storage
+      window.location.href = '/admin-dashboard'; // Redirect to admin home
+    } else {
+      alert('Invalid admin credentials')
+    }
+  }
+
   return (
-    <div
-      className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md relative">
         {/* Back Button */}
         <Link href="/" className="absolute top-4 left-4">
@@ -40,13 +115,13 @@ export function LoginRegisterAdminPageComponent() {
               <TabsTrigger value="admin">Admin</TabsTrigger>
             </TabsList>
             <TabsContent value="login">
-              <form>
+              <form onSubmit={handleLogin}>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                      <Input id="email" placeholder="Enter your email" type="email" className="pl-10" />
+                      <Input id="email" placeholder="Enter your email" type="email" className="pl-10" value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -57,7 +132,9 @@ export function LoginRegisterAdminPageComponent() {
                         id="password"
                         type={showPassword ? "text" : "password"}
                         className="pl-10 pr-10"
-                        placeholder="Enter your password" />
+                        placeholder="Enter your password" 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} />
                       <button
                         type="button"
                         onClick={togglePasswordVisibility}
@@ -79,19 +156,12 @@ export function LoginRegisterAdminPageComponent() {
                     </label>
                   </div>
                 </div>
-                <Button className="w-full mt-6 bg-pink-500 hover:bg-pink-600 text-white">Log in</Button>
+                <Button type="submit" className="w-full mt-6 bg-pink-500 hover:bg-pink-600 text-white">Log in</Button>
               </form>
             </TabsContent>
             <TabsContent value="register">
-              <form>
+              <form onSubmit={handleRegister}>
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="register-name">Full Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                      <Input id="register-name" placeholder="Enter your full name" className="pl-10" />
-                    </div>
-                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="register-email">Email</Label>
                     <div className="relative">
@@ -100,7 +170,9 @@ export function LoginRegisterAdminPageComponent() {
                         id="register-email"
                         placeholder="Enter your email"
                         type="email"
-                        className="pl-10" />
+                        className="pl-10" 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -111,7 +183,9 @@ export function LoginRegisterAdminPageComponent() {
                         id="register-password"
                         type={showPassword ? "text" : "password"}
                         className="pl-10 pr-10"
-                        placeholder="Create a password" />
+                        placeholder="Create a password" 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} />
                       <button
                         type="button"
                         onClick={togglePasswordVisibility}
@@ -136,11 +210,11 @@ export function LoginRegisterAdminPageComponent() {
                     </label>
                   </div>
                 </div>
-                <Button className="w-full mt-6 bg-purple-500 hover:bg-purple-600 text-white">Create Account</Button>
+                <Button type="submit" className="w-full mt-6 bg-purple-500 hover:bg-purple-600 text-white">Create Account</Button>
               </form>
             </TabsContent>
             <TabsContent value="admin">
-              <form>
+              <form onSubmit={handleAdminLogin}>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="admin-email">Admin Email</Label>
@@ -150,7 +224,10 @@ export function LoginRegisterAdminPageComponent() {
                         id="admin-email"
                         placeholder="Enter admin email"
                         type="email"
-                        className="pl-10" />
+                        className="pl-10"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -161,7 +238,10 @@ export function LoginRegisterAdminPageComponent() {
                         id="admin-password"
                         type={showPassword ? "text" : "password"}
                         className="pl-10 pr-10"
-                        placeholder="Enter admin password" />
+                        placeholder="Enter admin password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
                       <button
                         type="button"
                         onClick={togglePasswordVisibility}
@@ -183,7 +263,7 @@ export function LoginRegisterAdminPageComponent() {
                     </label>
                   </div>
                 </div>
-                <Button className="w-full mt-6 bg-green-500 hover:bg-green-600 text-white">
+                <Button type="submit" className="w-full mt-6 bg-green-500 hover:bg-green-600 text-white">
                   <ShieldCheck className="mr-2 h-4 w-4" />
                   Admin Login
                 </Button>
@@ -214,7 +294,7 @@ export function LoginRegisterAdminPageComponent() {
             Continue with Google
           </Button>
           <div className="text-center text-sm">
-            <a href="#" className="text-pink-500 hover:underline">Forgot password?</a>
+            <Link href="#" className="text-pink-500 hover:underline">Forgot password?</Link>
           </div>
         </CardFooter>
       </Card>
