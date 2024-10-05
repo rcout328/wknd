@@ -14,7 +14,9 @@ export default function Header({ toggleSidebar }) {
           <Link href="/" className="text-gray-700 hover:text-pink-500">Home</Link>
           <Link href="/about-us" className="text-gray-700 hover:text-pink-500">About Us</Link>
           <Link href="/menu" className="text-gray-700 hover:text-pink-500">Menu</Link> {/* Updated link */}
-          <Link href="/contact-us" className="text-gray-700 hover:text-pink-500">Contact Us</Link> {/* Added link */}
+          <Link href="/admin-dashboard" className="text-gray-700 hover:text-pink-500">Admin Dashboard</Link> {/* New link */}
+          <Link href="/contact-us" className="text-gray-700 hover:text-pink-500">Contact Us</Link>
+          
         </nav>
         <div className="flex items-center space-x-4">
           <Input className="hidden md:block" placeholder="Search" type="search" />
@@ -23,8 +25,8 @@ export default function Header({ toggleSidebar }) {
             <span className="sr-only">Search</span>
           </Button>
           <Button size="icon" variant="ghost" className="bg-orange-100 text-orange-500">
-            <ShoppingBag className="h-5 w-5" />
-            <span className="sr-only">Cart</span>
+            
+            <Link href="/advanced-cart"><ShoppingBag className="h-5 w-5" /></Link>
           </Button>
           <Button size="icon" variant="ghost" onClick={toggleSidebar} className="md:hidden">
             <Menu className="h-5 w-5 text-gray-700" />

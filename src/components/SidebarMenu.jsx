@@ -25,7 +25,8 @@ export default function SidebarMenu({ isOpen, onClose }) {
             <li><Link href="/" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Home</Link></li>
             <li><Link href="/about-us" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">About Us</Link></li>
             <li><Link href="/menu" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Menu</Link></li>
-            <li><Link href="/contact-us" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Contact Us</Link></li> {/* Added link */}
+            <li><Link href="/admin-dashboard" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Admin Dashboard</Link></li> {/* Added link */}
+            <li><Link href="/contact-us" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Contact Us</Link></li>
           </ul>
         </nav>
       </div>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image'
 import { Search, ShoppingBag, ChevronRight, Menu, X } from 'lucide-react'
+import Link from 'next/link'; // Import Link from next/link
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -66,9 +67,11 @@ function WkndCakeShop() {
               Experience the magic of our handcrafted cakes, baked with love and the finest ingredients. Perfect for any occasion or just because you deserve a treat!
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-pink-500 hover:bg-pink-600 text-white">
-                Order Now
-              </Button>
+              <Link href="/product-details"> {/* Link to product details page */}
+                <Button size="lg" className="bg-pink-500 hover:bg-pink-600 text-white">
+                  Order Now
+                </Button>
+              </Link>
               <Button
                 size="lg"
                 variant="outline"
@@ -113,7 +116,7 @@ function WkndCakeShop() {
                   <CardContent className="p-4">
                     <h3 className="text-xl font-semibold mb-2">{cake.name}</h3>
                     <p className="text-gray-600 mb-4">{cake.description}</p>
-                    <Button className="w-full">Order Now</Button>
+                    <Button className="w-full"><Link href="product-details">Order Now</Link></Button>
                   </CardContent>
                 </Card>
               ))}
