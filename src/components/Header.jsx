@@ -16,6 +16,7 @@ export default function Header({ toggleSidebar }) {
           <Link href="/menu" className="text-gray-700 hover:text-pink-500">Menu</Link> {/* Updated link */}
           <Link href="/admin-dashboard" className="text-gray-700 hover:text-pink-500">Admin Dashboard</Link> {/* New link */}
           <Link href="/contact-us" className="text-gray-700 hover:text-pink-500">Contact Us</Link>
+          <Link href="/login-register" className="text-gray-700 hover:text-pink-500">Login/Register</Link>
           
         </nav>
         <div className="flex items-center space-x-4">
