@@ -1,10 +1,21 @@
 'use client'
 
+import { useEffect, useState } from 'react'; // Import useEffect and useState
 import Link from 'next/link';
 import { X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export default function SidebarMenu({ isOpen, onClose }) {
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // State to track login status
+
+  useEffect(() => {
+    // Check if the user is logged in
+    const storedEmail = localStorage.getItem('userEmail');
+    if (storedEmail) {
+      setIsLoggedIn(true); // User is logged in
+    }
+  }, []);
+
   return (
     <>
       {/* Backdrop */}
@@ -25,8 +36,10 @@ export default function SidebarMenu({ isOpen, onClose }) {
             <li><Link href="/" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Home</Link></li>
             <li><Link href="/about-us" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">About Us</Link></li>
             <li><Link href="/menu" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Menu</Link></li>
-            <li><Link href="/admin-dashboard" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Admin Dashboard</Link></li> {/* Added link */}
-            <li><Link href="/login-register" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Login/Register</Link></li> {/* Added link */}
+            {/* Conditionally render Login/Register link */}
+            {!isLoggedIn && (
+              <li><Link href="/login-register" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Login/Register</Link></li>
+            )}
             <li><Link href="/contact-us" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Contact Us</Link></li>
           </ul>
         </nav>

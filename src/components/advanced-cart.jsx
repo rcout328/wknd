@@ -1,79 +1,164 @@
 'use client';
-import { useState, useEffect } from 'react'
-import Image from 'next/image'
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Minus, Plus, X, ShoppingBag, AlertCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion'
-
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { useToast } from '@/hooks/use-toast';
-import Header from "@/components/Header"; // Adjust the path as necessary
-import Footer from "@/components/Footer"; // Adjust the path as necessary
-import SidebarMenu from './SidebarMenu';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-const shippingOptions = [
-  { id: 'standard', name: 'Standard Shipping', price: 5, days: '3-5' },
-  { id: 'express', name: 'Express Shipping', price: 15, days: '1-2' },
-  { id: 'pickup', name: 'Local Pickup', price: 0, days: '1' },
-]
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from '@/hooks/use-toast';
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import SidebarMenu from './SidebarMenu';
+import { useUser } from '@/context/UserContext';
+import { supabase } from '@/lib/supabaseClient';
 
 export function AdvancedCartComponent() {
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: "Chocolate Delight", price: 35, quantity: 1, image: "/placeholder.svg?height=100&width=100&text=Chocolate+Cake" },
-    { id: 2, name: "Strawberry Dream", price: 40, quantity: 2, image: "/placeholder.svg?height=100&width=100&text=Strawberry+Cake" },
-    { id: 3, name: "Vanilla Bliss", price: 30, quantity: 1, image: "/placeholder.svg?height=100&width=100&text=Vanilla+Cake" },
-  ])
-  const [couponCode, setCouponCode] = useState('')
-  const [discount, setDiscount] = useState(0)
-  const [shipping, setShipping] = useState(shippingOptions[0])
-  const { toast } = useToast()
-
-  const updateQuantity = (id, newQuantity) => {
-    setCartItems(cartItems.map(item => 
-      item.id === id ? { ...item, quantity: Math.max(1, newQuantity) } : item))
-  }
-
-  const removeItem = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id))
-  }
-
-  const applyCoupon = () => {
-    if (couponCode.toLowerCase() === 'sweet10') {
-      setDiscount(10)
-      toast({
-        title: "Coupon Applied",
-        description: "You've received a 10% discount!",
-      })
-    } else {
-      setDiscount(0)
-      toast({
-        title: "Invalid Coupon",
-        description: "The coupon code you entered is not valid.",
-        variant: "destructive",
-      })
-    }
-  }
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const discountAmount = (subtotal * discount) / 100
-  const shippingCost = shipping.price
-  const tax = (subtotal - discountAmount) * 0.1 // Assuming 10% tax
-  const total = subtotal - discountAmount + shippingCost + tax
+  const [cartItems, setCartItems] = useState([]);
+  const { toast } = useToast();
+  const { userEmail } = useUser();
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [orderId, setOrderId] = useState(null);
 
   useEffect(() => {
-    if (cartItems.length === 0) {
-      toast({
-        title: "Cart is empty",
-        description: "Your cart is empty. Add some delicious cakes!",
-        variant: "destructive",
-      })
+    if (userEmail) {
+      fetchCartItems(userEmail);
     }
-  }, [cartItems])
+  }, [userEmail]);
+
+  const fetchCartItems = async (userEmail) => {
+    // Fetch cart items
+    const { data: cartData, error: cartError } = await supabase
+      .from('Cart')
+      .select('item_id')
+      .eq('sid', userEmail);
+
+    if (cartError) {
+      console.error('Error fetching cart items:', cartError);
+      return;
+    }
+
+    if (cartData && cartData.length > 0) {
+      const itemIds = cartData.map(item => item.item_id);
+
+      // Fetch menu items for the cart items
+      const { data: menuItems, error: menuError } = await supabase
+        .from('menu')
+        .select('*')
+        .in('id', itemIds);
+
+      if (menuError) {
+        console.error('Error fetching menu items:', menuError);
+        return;
+      }
+
+      const combinedItems = menuItems.map(menuItem => ({
+        ...menuItem,
+        quantity: 1 // Default quantity, you might want to adjust this
+      }));
+
+      setCartItems(combinedItems);
+      calculateTotalPrice(combinedItems);
+    }
+  };
+
+  const calculateTotalPrice = (items) => {
+    const total = items.reduce((sum, item) => sum + item.Price * item.quantity, 0);
+    setTotalPrice(total);
+  };
+
+  const updateQuantity = (itemId, newQuantity) => {
+    if (newQuantity < 1) return;
+
+    const updatedItems = cartItems.map(item =>
+      item.id === itemId ? { ...item, quantity: newQuantity } : item
+    );
+    setCartItems(updatedItems);
+    calculateTotalPrice(updatedItems);
+  };
+
+  const removeItem = async (itemId) => {
+    const { error } = await supabase
+      .from('Cart')
+      .delete()
+      .eq('item_id', itemId)
+      .eq('sid', userEmail);
+
+    if (error) {
+      console.error('Error removing item from cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove item from cart. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      const updatedItems = cartItems.filter(item => item.id !== itemId);
+      setCartItems(updatedItems);
+      calculateTotalPrice(updatedItems);
+    }
+  };
+
+  const handleCheckout = async () => {
+    if (!userEmail || cartItems.length === 0) {
+      toast({
+        title: "Error",
+        description: "Your cart is empty or you are not logged in.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Fetch the cart items again to get the correct item_id from the Cart table
+    const { data: cartData, error: cartError } = await supabase
+      .from('Cart')
+      .select('item_id')
+      .eq('sid', userEmail);
+
+    if (cartError) {
+      console.error('Error fetching cart items:', cartError);
+      toast({
+        title: "Error",
+        description: "Failed to fetch cart items. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create a single order entry with all item IDs and quantities as arrays
+    const orderEntry = {
+      sid: userEmail,
+      tprice: totalPrice,
+      itemidd: cartData.map(item => item.item_id), 
+      quen: cartItems.map(item => item.quantity) // Store quantities as an array of integers
+    };
+
+  
+    const { data: orderData, error: orderError } = await supabase
+      .from('Order')
+      .insert([orderEntry])
+      .select();
+
+    if (orderError) {
+      console.error('Error creating order:', orderError);
+      toast({
+        title: "Error",
+        description: "Failed to create order. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      setOrderId(orderData[0].id);
+      // Clear the cart after successful order creation
+      await supabase
+        .from('Cart')
+        .delete()
+        .eq('sid', userEmail);
+      // Redirect to order confirmation form with order ID
+      window.location.href = `/order-confirmation-form?orderId=${orderData[0].id}`;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
@@ -113,7 +198,7 @@ export function AdvancedCartComponent() {
                           className="rounded-lg" />
                         <div className="ml-4 flex-grow">
                           <h3 className="text-lg font-semibold">{item.name}</h3>
-                          <p className="text-gray-600">${item.price.toFixed(2)}</p>
+                          <p className="text-gray-600">${item.Price.toFixed(2)} x {item.quantity} = ${(item.Price * item.quantity).toFixed(2)}</p>
                         </div>
                         <div className="flex items-center">
                           <Button
@@ -146,70 +231,18 @@ export function AdvancedCartComponent() {
 
             <Card className="mt-6">
               <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-4">Shipping Options</h3>
-                <RadioGroup
-                  defaultValue={shipping.id}
-                  onValueChange={(value) => setShipping(shippingOptions.find(option => option.id === value))}>
-                  {shippingOptions.map((option) => (
-                    <div key={option.id} className="flex items-center space-x-2 mb-2">
-                      <RadioGroupItem value={option.id} id={option.id} />
-                      <Label htmlFor={option.id}>
-                        {option.name} - ${option.price.toFixed(2)} ({option.days} business days)
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="lg:w-1/3">
-            <Card>
-              <CardContent className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
-                      <span>-${discountAmount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span>Shipping</span>
-                    <span>${shippingCost.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tax</span>
-                    <span>${tax.toFixed(2)}</span>
-                  </div>
-                  <Separator className="my-4" />
-                  <div className="flex justify-between text-lg font-semibold">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
-                  </div>
-                </div>
-                <div className="mt-6">
-                  <Label htmlFor="coupon">Coupon Code</Label>
-                  <div className="flex mt-1">
-                    <Input
-                      id="coupon"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      placeholder="Enter coupon code"
-                      className="flex-grow" />
-                    <Button onClick={applyCoupon} className="ml-2">
-                      Apply
-                    </Button>
+                    <span>${totalPrice.toFixed(2)}</span>
                   </div>
                 </div>
                 <Button 
-                    className="w-full mt-6 bg-pink-500 hover:bg-pink-600 text-white"
+                  className="w-full mt-6 bg-pink-500 hover:bg-pink-600 text-white"
+                  onClick={handleCheckout}
                 >
-                    <Link href="/order-confirmation">Proceed to Checkout</Link> {/* Ensure this points to the correct route */}
+                  Proceed to Checkout
                 </Button>
               </CardContent>
             </Card>

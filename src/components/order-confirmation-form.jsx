@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { CalendarIcon, ArrowLeft } from 'lucide-react';
-import Image from 'next/image' // Import useRouter for navigation
+import Image from 'next/image'
+import { useSearchParams } from 'next/navigation';
+import { supabase } from "@/lib/supabaseClient";
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,28 +42,76 @@ const formSchema = z.object({
   specialInstructions: z.string().optional(),
 })
 
-// Mock order data
-const orderItems = [
-  { id: 1, name: "Chocolate Delight", price: 35, quantity: 1, image: "/placeholder.svg?height=80&width=80&text=Chocolate+Cake" },
-  { id: 2, name: "Strawberry Dream", price: 40, quantity: 2, image: "/placeholder.svg?height=80&width=80&text=Strawberry+Cake" },
-]
-
 export function OrderConfirmationFormComponent() {
   const [date, setDate] = useState()
+  const [orderItems, setOrderItems] = useState([])
+  const [totalPrice, setTotalPrice] = useState(0)
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('orderId');
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     resolver: zodResolver(formSchema),
   })
+
+  useEffect(() => {
+    if (orderId) {
+      fetchOrderDetails(orderId);
+    }
+  }, [orderId]);
+
+  const fetchOrderDetails = async (id) => {
+    // Fetch order details
+    const { data: orderData, error: orderError } = await supabase
+      .from('Order')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (orderError) {
+      console.error('Error fetching order details:', orderError);
+      return;
+    }
+
+    setTotalPrice(orderData.tprice);
+
+    // Fetch order items
+    const { data: itemsData, error: itemsError } = await supabase
+      .from('Order')
+      .select('itemid, quen')
+      .eq('id', id);
+
+    if (itemsError) {
+      console.error('Error fetching order items:', itemsError);
+      return;
+    }
+
+    // Fetch menu items for each order item
+    const menuItemPromises = itemsData.map(item => 
+      supabase
+        .from('menu')
+        .select('*')
+        .eq('id', item.itemid)
+        .single()
+    );
+
+    const menuItemsResults = await Promise.all(menuItemPromises);
+    const menuItems = menuItemsResults.map(result => result.data);
+
+    // Combine order items with menu items
+    const combinedItems = itemsData.map((item, index) => ({
+      ...item,
+      ...menuItems[index],
+      totalPrice: item.quen * menuItems[index].Price
+    }));
+
+    setOrderItems(combinedItems);
+  };
 
   const onSubmit = (data) => {
     console.log(data)
     // Here you would typically send the data to your server
     alert("Order submitted successfully!")
   }
-
-  const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const tax = subtotal * 0.1 // Assuming 10% tax
-  const total = subtotal + tax
 
   return (
     <div
@@ -95,24 +145,16 @@ export function OrderConfirmationFormComponent() {
                       className="rounded-md mr-4" />
                     <div>
                       <h4 className="font-semibold">{item.name}</h4>
-                      <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-                      <p className="text-sm text-gray-600">${item.price.toFixed(2)} each</p>
+                      <p className="text-sm text-gray-600">Quantity: {item.quen}</p>
+                      <p className="text-sm text-gray-600">${item.Price.toFixed(2)} each</p>
                     </div>
                   </div>
                 ))}
                 <Separator className="my-4" />
                 <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tax</span>
-                    <span>${tax.toFixed(2)}</span>
-                  </div>
                   <div className="flex justify-between font-semibold">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>${totalPrice.toFixed(2)}</span>
                   </div>
                 </div>
               </div>

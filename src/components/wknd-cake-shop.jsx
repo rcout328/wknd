@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Search, ShoppingBag, ChevronRight, Menu, X } from 'lucide-react';
+import { Search, ShoppingBag, ChevronRight, Menu } from 'lucide-react';
 import Link from 'next/link'; // Import Link from next/link
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,18 @@ const menuCategories = ['All', 'Cakes', 'Cupcakes', 'Pastries', 'Seasonal'];
 function WkndCakeShop() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [menuItems, setMenuItems] = useState([]); // State to hold menu items
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // State to track login status
+
+  // Check for user email in local storage on mount
+  useEffect(() => {
+    const storedEmail = localStorage.getItem('userEmail');
+    if (storedEmail) {
+      setIsLoggedIn(true); // User is logged in
+      console.log('Current logged in user email:', storedEmail); // Log the email to the console
+    } else {
+      console.log('User is not logged in');
+    }
+  }, []);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -38,6 +50,30 @@ function WkndCakeShop() {
 
     fetchMenuItems();
   }, []);
+
+  // Function to handle adding item to cart
+  const handleAddToCart = async (itemId) => {
+    const storedEmail = localStorage.getItem('userEmail');
+    if (!storedEmail) {
+      alert('You must be logged in to order items.');
+      return;
+    }
+
+    // Insert the item into the Cart table
+    const { error: insertError } = await supabase
+      .from('Cart')
+      .insert([
+        { item_id: itemId, sid: storedEmail }
+      ]);
+
+    if (insertError) {
+      console.error('Error adding item to cart:', insertError);
+      alert('Failed to add item to cart. Please try again.');
+    } else {
+      console.log('Item added to cart successfully');
+      alert('Item added to cart successfully!');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
@@ -103,7 +139,7 @@ function WkndCakeShop() {
                   <CardContent className="p-4">
                     <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
                     <p className="text-gray-600 mb-4">{item.desc}</p>
-                    <Button className="w-full">Order Now</Button>
+                    <Button className="w-full" onClick={() => handleAddToCart(item.id)}>Order Now</Button>
                   </CardContent>
                 </Card>
               ))}
@@ -122,7 +158,7 @@ function WkndCakeShop() {
                     <CardContent className="p-4">
                       <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
                       <p className="text-gray-600 mb-4">{item.desc}</p>
-                      <Button className="w-full">Order Now</Button>
+                      <Button className="w-full" onClick={() => handleAddToCart(item.id)}>Order Now</Button>
                     </CardContent>
                   </Card>
                 ))}
