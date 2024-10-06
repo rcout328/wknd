@@ -6,6 +6,7 @@ import { Minus, Plus, X, ShoppingBag, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,6 +27,8 @@ export function AdvancedCartComponent() {
   const { userEmail } = useUser();
   const [totalPrice, setTotalPrice] = useState(0);
   const [orderId, setOrderId] = useState(null);
+  const [isCheckoutClicked, setIsCheckoutClicked] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (userEmail) {
@@ -115,6 +118,12 @@ export function AdvancedCartComponent() {
       return;
     }
 
+    if (isCheckoutClicked) {
+      // If already checked out, redirect to order confirmation
+      router.push(`/order-confirmation-form?orderId=${orderId}`);
+      return;
+    }
+
     // Fetch the cart items again to get the correct item_id from the Cart table
     const { data: cartData, error: cartError } = await supabase
       .from('Cart')
@@ -139,7 +148,6 @@ export function AdvancedCartComponent() {
       quen: cartItems.map(item => item.quantity) // Store quantities as an array of integers
     };
 
-  
     const { data: orderData, error: orderError } = await supabase
       .from('Order')
       .insert([orderEntry])
@@ -154,13 +162,12 @@ export function AdvancedCartComponent() {
       });
     } else {
       setOrderId(orderData[0].id);
-      // Clear the cart after successful order creation
-      await supabase
-        .from('Cart')
-        .delete()
-        .eq('sid', userEmail);
-      // Redirect to order confirmation form with order ID
-      window.location.href = `/order-confirmation-form?orderId=${orderData[0].id}`;
+      setIsCheckoutClicked(true);
+      toast({
+        title: "Success",
+        description: "Order created successfully. Click 'Order Confirmation' to proceed.",
+        variant: "success",
+      });
     }
   };
 
@@ -246,7 +253,7 @@ export function AdvancedCartComponent() {
                   className="w-full mt-6 bg-pink-500 hover:bg-pink-600 text-white"
                   onClick={handleCheckout}
                 >
-                  Proceed to Checkout
+                  {isCheckoutClicked ? "Order Confirmation" : "Proceed to Checkout"}
                 </Button>
               </CardContent>
             </Card>
