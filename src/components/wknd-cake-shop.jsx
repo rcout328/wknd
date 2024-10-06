@@ -90,7 +90,7 @@ function WkndCakeShop() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/product-details">
-                <Button size="lg" className="bg-pink-500 hover:bg-pink-600 text-white">
+                <Button size="lg" className="bg-pink-500 hover:bg-pink-600 text-white w-full">
                   Order Now
                 </Button>
               </Link>

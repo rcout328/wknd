@@ -1,20 +1,24 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Minus, Plus, X, ShoppingBag, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import SidebarMenu from './SidebarMenu';
 import { useUser } from '@/context/UserContext';
 import { supabase } from '@/lib/supabaseClient';
+
+// Dynamically import components that might cause server-side rendering issues
+const Header = dynamic(() => import("@/components/Header"), { ssr: false });
+const Footer = dynamic(() => import("@/components/Footer"), { ssr: false });
+const SidebarMenu = dynamic(() => import('./SidebarMenu'), { ssr: false });
 
 export function AdvancedCartComponent() {
   const [cartItems, setCartItems] = useState([]);
@@ -167,7 +171,7 @@ export function AdvancedCartComponent() {
       <main className="container mx-auto px-6 py-16">
         <h1 className="text-4xl font-bold text-center mb-12">Your Sweet Cart</h1>
         
-        <div className="flex flex-col lg:flex-row gap-12">
+        <div className="flex flex-row lg:flex-row gap-12">
           <div className="lg:w-2/3">
             <Card>
               <CardContent className="p-6">
@@ -261,3 +265,5 @@ export function AdvancedCartComponent() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(AdvancedCartComponent), { ssr: false });

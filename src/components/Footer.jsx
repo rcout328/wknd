@@ -1,3 +1,5 @@
+'use client'
+
 import Image from 'next/image';
 import { Search, ShoppingBag, ChevronRight, Instagram, Facebook, Twitter, MapPin, Phone, Mail, ArrowRight } from 'lucide-react';
 

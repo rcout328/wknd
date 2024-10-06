@@ -74,34 +74,23 @@ export function OrderConfirmationFormComponent() {
 
     setTotalPrice(orderData.tprice);
 
-    // Fetch order items
-    const { data: itemsData, error: itemsError } = await supabase
-      .from('Order')
-      .select('itemid, quen')
-      .eq('id', id);
-
-    if (itemsError) {
-      console.error('Error fetching order items:', itemsError);
-      return;
-    }
-
-    // Fetch menu items for each order item
-    const menuItemPromises = itemsData.map(item => 
+    // Fetch menu items for each item in the order
+    const menuItemPromises = orderData.itemidd.map(itemId => 
       supabase
         .from('menu')
         .select('*')
-        .eq('id', item.itemid)
+        .eq('id', itemId)
         .single()
     );
 
     const menuItemsResults = await Promise.all(menuItemPromises);
     const menuItems = menuItemsResults.map(result => result.data);
 
-    // Combine order items with menu items
-    const combinedItems = itemsData.map((item, index) => ({
+    // Combine order items with menu items and quantities
+    const combinedItems = menuItems.map((item, index) => ({
       ...item,
-      ...menuItems[index],
-      totalPrice: item.quen * menuItems[index].Price
+      quantity: orderData.quen[index],
+      totalPrice: item.Price * orderData.quen[index]
     }));
 
     setOrderItems(combinedItems);
@@ -145,8 +134,9 @@ export function OrderConfirmationFormComponent() {
                       className="rounded-md mr-4" />
                     <div>
                       <h4 className="font-semibold">{item.name}</h4>
-                      <p className="text-sm text-gray-600">Quantity: {item.quen}</p>
+                      <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                       <p className="text-sm text-gray-600">${item.Price.toFixed(2)} each</p>
+                      <p className="text-sm font-semibold">Total: ${item.totalPrice.toFixed(2)}</p>
                     </div>
                   </div>
                 ))}

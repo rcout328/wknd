@@ -22,6 +22,7 @@ const Menu = () => {
   const [cart, setCart] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [menuItems, setMenuItems] = useState([]); // State to hold menu items
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Fetch menu items from Supabase
   useEffect(() => {
@@ -39,6 +40,17 @@ const Menu = () => {
     };
 
     fetchMenuItems();
+  }, []);
+
+  // Check for user email in local storage on mount
+  useEffect(() => {
+    const storedEmail = localStorage.getItem('userEmail');
+    if (storedEmail) {
+      setIsLoggedIn(true);
+      console.log('Current logged in user email:', storedEmail);
+    } else {
+      console.log('User is not logged in');
+    }
   }, []);
 
   const filteredItems = menuItems.filter(item => 
@@ -61,6 +73,32 @@ const Menu = () => {
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  // Function to handle adding item to cart
+  const handleAddToCart = async (itemId) => {
+    const storedEmail = localStorage.getItem('userEmail');
+    if (!storedEmail) {
+      alert('You must be logged in to order items.');
+      return;
+    }
+
+    // Insert the item into the Cart table
+    const { error: insertError } = await supabase
+      .from('Cart')
+      .insert([
+        { item_id: itemId, sid: storedEmail }
+      ]);
+
+    if (insertError) {
+      console.error('Error adding item to cart:', insertError);
+      alert('Failed to add item to cart. Please try again.');
+    } else {
+      console.log('Item added to cart successfully');
+      alert('Item added to cart successfully!');
+      // Update the local cart state
+      addToCart(itemId);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
@@ -122,8 +160,8 @@ const Menu = () => {
                 <Button
                   size="sm"
                   className="w-full bg-pink-500 hover:bg-pink-600 text-white"
-                  onClick={() => addToCart(item.id)}>
-                  Add to Cart
+                  onClick={() => handleAddToCart(item.id)}>
+                  Order Now
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardContent>
