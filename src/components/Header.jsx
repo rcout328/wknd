@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'; // Import useEffect and useState
 import Link from 'next/link'
-import { Search, ShoppingBag, Menu } from 'lucide-react';
+import { Search, ShoppingBag, Menu, User } from 'lucide-react'; // Add User icon
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -41,6 +41,12 @@ export default function Header({ toggleSidebar }) {
             <Search className="h-5 w-5 text-gray-700" />
             <span className="sr-only">Search</span>
           </Button>
+          {isLoggedIn && (
+            <Button size="icon" variant="ghost">
+              <Link href="/user-orders"><User className="h-5 w-5 text-gray-700" /></Link>
+              <span className="sr-only">My Orders</span>
+            </Button>
+          )}
           <Button size="icon" variant="ghost" className="bg-orange-100 text-orange-500">
             <Link href="/advanced-cart"><ShoppingBag className="h-5 w-5" /></Link>
           </Button>

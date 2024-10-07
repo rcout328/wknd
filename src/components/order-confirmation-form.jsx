@@ -25,11 +25,8 @@ import Link from 'next/link'
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
-  email: z.string().email({ message: "Invalid email address." }),
   phone: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
   address: z.string().min(5, { message: "Address must be at least 5 characters." }),
-  city: z.string().min(2, { message: "City must be at least 2 characters." }),
-  postalCode: z.string().min(5, { message: "Postal code must be at least 5 characters." }),
   deliveryDate: z.date({
     required_error: "Delivery date is required.",
   }),
@@ -49,9 +46,22 @@ export function OrderConfirmationFormComponent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm({
     resolver: zodResolver(formSchema),
   })
+
+  const [userEmail, setUserEmail] = useState('')
+
+  useEffect(() => {
+    const fetchUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUserEmail(user.email)
+        console.log('Fetched user email:', user.email);
+      }
+    }
+    fetchUserEmail()
+  }, [])
 
   useEffect(() => {
     if (orderId) {
@@ -60,7 +70,6 @@ export function OrderConfirmationFormComponent() {
   }, [orderId]);
 
   const fetchOrderDetails = async (id) => {
-    // Fetch order details
     const { data: orderData, error: orderError } = await supabase
       .from('Order')
       .select('*')
@@ -72,9 +81,9 @@ export function OrderConfirmationFormComponent() {
       return;
     }
 
+    console.log('Fetched order details:', orderData);
     setTotalPrice(orderData.tprice);
 
-    // Fetch menu items for each item in the order
     const menuItemPromises = orderData.itemidd.map(itemId => 
       supabase
         .from('menu')
@@ -86,7 +95,6 @@ export function OrderConfirmationFormComponent() {
     const menuItemsResults = await Promise.all(menuItemPromises);
     const menuItems = menuItemsResults.map(result => result.data);
 
-    // Combine order items with menu items and quantities
     const combinedItems = menuItems.map((item, index) => ({
       ...item,
       quantity: orderData.quen[index],
@@ -96,22 +104,50 @@ export function OrderConfirmationFormComponent() {
     setOrderItems(combinedItems);
   };
 
-  const onSubmit = (data) => {
-    console.log(data)
-    // Here you would typically send the data to your server
-    alert("Order submitted successfully!")
+  const onSubmit = async (data) => {
+    try {
+      console.log('Submitting order data:', {
+        sid: userEmail,
+        orderid: orderId,
+        name: data.fullName,
+        phone: data.phone,
+        address: data.address,
+        deliverydate: data.deliveryDate,
+        deliverytime: data.deliveryTime,
+        pmethod: data.paymentMethod,
+        specialinstructions: data.specialInstructions || null
+      });
+
+      const { error: updateError } = await supabase
+        .from('Order')
+        .update({
+          cname: data.fullName,
+          phone: data.phone,
+          address: data.address,
+          deliverydate: data.deliveryDate,
+          deliverytime: data.deliveryTime,
+          pmethod: data.paymentMethod,
+          specialinstructions: data.specialInstructions || null
+        })
+        .eq('id', orderId);
+
+      if (updateError) throw updateError;
+
+      alert("Order submitted successfully!");
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      alert("There was an error submitting your order. Please try again.");
+    }
   }
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-12">
       <div className="container mx-auto px-4 relative">
-        {/* Back Button */}
         <Button
           variant="ghost"
           className="absolute top-4 left-4 text-pink-600"
         >
-         
           <Link href="/advanced-cart" className="flex flex-row"> <ArrowLeft className="mr-2 h-4 w-4" />Back</Link>
         </Button>
         
@@ -157,11 +193,6 @@ export function OrderConfirmationFormComponent() {
                     {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" {...register("email")} />
-                    {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
                     <Input id="phone" {...register("phone")} />
                     {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
@@ -170,18 +201,6 @@ export function OrderConfirmationFormComponent() {
                     <Label htmlFor="address">Address</Label>
                     <Input id="address" {...register("address")} />
                     {errors.address && <p className="text-red-500 text-sm">{errors.address.message}</p>}
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input id="city" {...register("city")} />
-                      {errors.city && <p className="text-red-500 text-sm">{errors.city.message}</p>}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="postalCode">Postal Code</Label>
-                      <Input id="postalCode" {...register("postalCode")} />
-                      {errors.postalCode && <p className="text-red-500 text-sm">{errors.postalCode.message}</p>}
-                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Delivery Date</Label>
