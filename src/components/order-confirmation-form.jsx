@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -277,5 +277,13 @@ function OrderConfirmationContent() {
       </div>
     </div>
     </Suspense>
+  );
+}
+
+export default function OrderConfirmationForm() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <OrderConfirmationContent />
+    </React.Suspense>
   );
 }
