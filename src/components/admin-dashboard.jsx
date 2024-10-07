@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from './ui/textarea';
 import Link from 'next/link';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function AdminDashboardComponent() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -25,6 +26,7 @@ export function AdminDashboardComponent() {
   const [selectedMenuItem, setSelectedMenuItem] = useState(null);
   const [orders, setOrders] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
+  const [selectedItemId, setSelectedItemId] = useState(null);
 
   // State for order form fields
   const [orderFields, setOrderFields] = useState({
@@ -279,6 +281,54 @@ export function AdminDashboardComponent() {
     // The redirection will be handled by the Link component
   };
 
+  const handleAddItemToOrder = async () => {
+    if (!selectedItemId) {
+      toast({
+        title: "Error",
+        description: "Please select an item to add.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { data: orderData, error: orderError } = await supabase
+      .from('Order')
+      .select('itemidd, quen')
+      .eq('id', selectedOrder.id)
+      .single();
+
+    if (orderError) {
+      console.error('Error fetching order:', orderError);
+      return;
+    }
+
+    // Update itemidd and quen arrays
+    const updatedItemidd = [...orderData.itemidd, selectedItemId];
+    const updatedQuen = [...orderData.quen, 1]; // Adding new item with quantity 1
+
+    const { error: updateError } = await supabase
+      .from('Order')
+      .update({ itemidd: updatedItemidd, quen: updatedQuen })
+      .eq('id', selectedOrder.id);
+
+    if (updateError) {
+      console.error('Error updating order:', updateError);
+      toast({
+        title: "Error",
+        description: "Failed to add item to order.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Item added to order successfully.",
+        variant: "success",
+      });
+      fetchOrders(); // Refresh the orders list
+      setSelectedItemId(null); // Reset the selected item ID
+    }
+  };
+
   const renderOrdersTable = () => (
     <Table>
       <TableHeader>
@@ -466,16 +516,17 @@ export function AdminDashboardComponent() {
             </div>
             <div>
               <Label htmlFor="edit-items">Add Item</Label>
-              <select
-                id="edit-items"
-                onChange={handleItemSelection}
-                className="w-full p-2 border rounded"
-              >
-                <option value="">Select an item</option>
-                {menuItems.map(item => (
-                  <option key={item.id} value={item.id}>{item.name} - ${item.Price.toFixed(2)}</option>
-                ))}
-              </select>
+              <Select onValueChange={setSelectedItemId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an item" />
+                </SelectTrigger>
+                <SelectContent>
+                  {menuItems.map(item => (
+                    <SelectItem key={item.id} value={item.id}>{item.name} - ${item.Price.toFixed(2)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button type="button" onClick={handleAddItemToOrder}>Add Item</Button>
             </div>
             <div className="space-y-2">
               {selectedItems.map((item) => (

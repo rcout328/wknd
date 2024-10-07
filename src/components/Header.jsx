@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'; // Import useEffect and useState
 import Link from 'next/link'
-import { Search, ShoppingBag, Menu, User } from 'lucide-react'; // Add User icon
+import {  ShoppingBag, Menu, User } from 'lucide-react'; // Add User icon
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -36,11 +36,7 @@ export default function Header({ toggleSidebar }) {
           )}
         </nav>
         <div className="flex items-center space-x-4">
-          <Input className="hidden md:block" placeholder="Search" type="search" />
-          <Button size="icon" variant="ghost">
-            <Search className="h-5 w-5 text-gray-700" />
-            <span className="sr-only">Search</span>
-          </Button>
+       
           {isLoggedIn && (
             <Button size="icon" variant="ghost">
               <Link href="/user-orders"><User className="h-5 w-5 text-gray-700" /></Link>
