@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -43,8 +43,8 @@ function OrderConfirmationContent() {
   const [date, setDate] = useState()
   const [orderItems, setOrderItems] = useState([])
   const [totalPrice, setTotalPrice] = useState(0)
-  const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
+  const params = useParams();
+  const orderId = params.orderId;
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm({
     resolver: zodResolver(formSchema),
@@ -258,6 +258,10 @@ function OrderConfirmationContent() {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="paypal" id="paypal" />
                         <Label htmlFor="paypal">PayPal</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="cash" id="cash" />
+                        <Label htmlFor="paypal">Cash</Label>
                       </div>
                     </RadioGroup>
                     {errors.paymentMethod && <p className="text-red-500 text-sm">{errors.paymentMethod.message}</p>}

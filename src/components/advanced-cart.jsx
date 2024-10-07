@@ -119,8 +119,7 @@ export function AdvancedCartComponent() {
     }
 
     if (isCheckoutClicked) {
-      // If already checked out, redirect to order confirmation
-      router.push(`/order-confirmation-form?orderId=${orderId}`);
+      // If already checked out, don't do anything as the Link will handle navigation
       return;
     }
 
@@ -249,12 +248,22 @@ export function AdvancedCartComponent() {
                     <span>${totalPrice.toFixed(2)}</span>
                   </div>
                 </div>
-                <Button 
-                  className="w-full mt-6 bg-pink-500 hover:bg-pink-600 text-white"
-                  onClick={handleCheckout}
-                >
-                  {isCheckoutClicked ? "Order Confirmation" : "Proceed to Checkout"}
-                </Button>
+                {isCheckoutClicked && orderId ? (
+                  <Link href={`/order-confirmation-form/${orderId}`} passHref>
+                    <Button 
+                      className="w-full mt-6 bg-pink-500 hover:bg-pink-600 text-white"
+                    >
+                      Order Confirmation
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button 
+                    className="w-full mt-6 bg-pink-500 hover:bg-pink-600 text-white"
+                    onClick={handleCheckout}
+                  >
+                    Proceed to Checkout
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
