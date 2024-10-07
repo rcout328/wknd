@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import Link from 'next/link'
+import { Suspense } from 'react/cjs/react.production.min';
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
