@@ -142,6 +142,7 @@ function OrderConfirmationContent() {
   }
 
   return (
+    <Suspense fallback={<div>Loading...</div>}>
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-12">
       <div className="container mx-auto px-4 relative">
         <Button
@@ -275,13 +276,6 @@ function OrderConfirmationContent() {
         </Card>
       </div>
     </div>
-  );
-}
-
-export default function OrderConfirmationForm() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <OrderConfirmationContent />
     </Suspense>
   );
 }
