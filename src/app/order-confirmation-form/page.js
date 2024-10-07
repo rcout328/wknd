@@ -1,7 +1,5 @@
-'use client';
+import OrderConfirmationForm from '@/components/order-confirmation-form';
 
-import { OrderConfirmationFormComponent } from "@/components/order-confirmation-form";
-
-export default function OrderConfirmationFormPage() {
-    return <OrderConfirmationFormComponent />;
+export default function OrderConfirmationPage() {
+    return <OrderConfirmationForm />;
 }

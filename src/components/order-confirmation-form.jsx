@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { CalendarIcon, ArrowLeft } from 'lucide-react';
 import Image from 'next/image'
-import { useSearchParams } from 'next/navigation';
 import { supabase } from "@/lib/supabaseClient";
 
 import { Button } from "@/components/ui/button"
@@ -39,7 +39,7 @@ const formSchema = z.object({
   specialInstructions: z.string().optional(),
 })
 
-export function OrderConfirmationFormComponent() {
+function OrderConfirmationContent() {
   const [date, setDate] = useState()
   const [orderItems, setOrderItems] = useState([])
   const [totalPrice, setTotalPrice] = useState(0)
@@ -275,5 +275,13 @@ export function OrderConfirmationFormComponent() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function OrderConfirmationForm() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OrderConfirmationContent />
+    </Suspense>
   );
 }
