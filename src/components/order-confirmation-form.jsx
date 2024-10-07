@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -21,8 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Separator } from "@/components/ui/separator"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import Link from 'next/link'
-import { Suspense } from 'react/cjs/react.production.min';
+import Link from 'next/link';
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
@@ -283,8 +282,8 @@ function OrderConfirmationContent() {
 
 export default function OrderConfirmationForm() {
   return (
-    <React.Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Loading...</div>}>
       <OrderConfirmationContent />
-    </React.Suspense>
+    </Suspense>
   );
 }
