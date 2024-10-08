@@ -33,7 +33,7 @@ const formSchema = z.object({
   deliveryTime: z.string({
     required_error: "Please select a delivery time.",
   }),
-  paymentMethod: z.enum(["credit", "debit", "paypal"], {
+  paymentMethod: z.enum(["credit", "debit", "paypal", "cash"], {
     required_error: "Please select a payment method.",
   }),
   specialInstructions: z.string().optional(),
@@ -118,7 +118,7 @@ function OrderConfirmationContent() {
         specialinstructions: data.specialInstructions || null
       });
 
-      const { error: updateError } = await supabase
+      const { data: updateData, error: updateError } = await supabase
         .from('Order')
         .update({
           cname: data.fullName,
@@ -133,153 +133,176 @@ function OrderConfirmationContent() {
 
       if (updateError) throw updateError;
 
+      console.log('Order updated successfully:', updateData);
+
+      // After successfully updating the order, delete the items from the Cart table
+      const { data: deleteData, error: deleteError } = await supabase
+        .from('Cart')
+        .delete()
+        .eq('sid', userEmail)
+        .in('item_id', orderItems.map(item => item.id));
+
+      if (deleteError) {
+        console.error('Error removing items from cart:', deleteError);
+        alert("Order confirmed, but failed to clear cart. Please clear manually.");
+      } else {
+        console.log('Cart cleared successfully:', deleteData);
+      }
+
       alert("Order submitted successfully!");
       window.location.href = '/';
     } catch (error) {
       console.error('Error submitting order:', error);
       alert("There was an error submitting your order. Please try again.");
     }
-  }
+  };
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-12">
-      <div className="container mx-auto px-4 relative">
-        <Button
-          variant="ghost"
-          className="absolute top-4 left-4 text-pink-600"
-        >
-          <Link href="/advanced-cart" className="flex flex-row"> <ArrowLeft className="mr-2 h-4 w-4" />Back</Link>
-        </Button>
-        
-        <Card className="max-w-4xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center text-pink-600">Order Confirmation</CardTitle>
-            <CardDescription className="text-center">Please review your order and fill in your details to confirm</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Order Details</h3>
-                {orderItems.map((item) => (
-                  <div key={item.id} className="flex items-center mb-4">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      width={80}
-                      height={80}
-                      className="rounded-md mr-4" />
-                    <div>
-                      <h4 className="font-semibold">{item.name}</h4>
-                      <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-                      <p className="text-sm text-gray-600">${item.Price.toFixed(2)} each</p>
-                      <p className="text-sm font-semibold">Total: ${item.totalPrice.toFixed(2)}</p>
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-12">
+        <div className="container mx-auto px-4 relative">
+          {/* Responsive Back Button */}
+          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8 z-10">
+            <Link href="/advanced-cart" passHref>
+              <Button
+                variant="ghost"
+                className="text-pink-600 p-2 sm:p-3"
+                aria-label="Go back to cart"
+              >
+                <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="sr-only sm:not-sr-only sm:ml-2">Back to Cart</span>
+              </Button>
+            </Link>
+          </div>
+          
+          <Card className="max-w-4xl mx-auto mt-16 sm:mt-20">
+            <CardHeader>
+              <CardTitle className="text-3xl font-bold text-center text-pink-600">Order Confirmation</CardTitle>
+              <CardDescription className="text-center">Please review your order and fill in your details to confirm</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h3 className="text-xl font-semibold mb-4">Order Details</h3>
+                  {orderItems.map((item) => (
+                    <div key={item.id} className="flex items-center mb-4">
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        width={80}
+                        height={80}
+                        className="rounded-md mr-4" />
+                      <div>
+                        <h4 className="font-semibold">{item.name}</h4>
+                        <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                        <p className="text-sm text-gray-600">${item.Price.toFixed(2)} each</p>
+                        <p className="text-sm font-semibold">Total: ${item.totalPrice.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <Separator className="my-4" />
+                  <div className="space-y-2">
+                    <div className="flex justify-between font-semibold">
+                      <span>Total</span>
+                      <span>${totalPrice.toFixed(2)}</span>
                     </div>
                   </div>
-                ))}
-                <Separator className="my-4" />
-                <div className="space-y-2">
-                  <div className="flex justify-between font-semibold">
-                    <span>Total</span>
-                    <span>${totalPrice.toFixed(2)}</span>
-                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-4">Delivery Information</h3>
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">Full Name</Label>
+                      <Input id="fullName" {...register("fullName")} />
+                      {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input id="phone" {...register("phone")} />
+                      {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="address">Address</Label>
+                      <Input id="address" {...register("address")} />
+                      {errors.address && <p className="text-red-500 text-sm">{errors.address.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Delivery Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !date && "text-muted-foreground"
+                            )}>
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date ? format(date, "PPP") : <span>Pick a date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={date}
+                            onSelect={(newDate) => {
+                              setDate(newDate)
+                              setValue("deliveryDate", newDate)
+                            }}
+                            initialFocus />
+                        </PopoverContent>
+                      </Popover>
+                      {errors.deliveryDate && <p className="text-red-500 text-sm">{errors.deliveryDate.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="deliveryTime">Delivery Time</Label>
+                      <Select onValueChange={(value) => setValue("deliveryTime", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select delivery time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="morning">Morning (9AM - 12PM)</SelectItem>
+                          <SelectItem value="afternoon">Afternoon (12PM - 5PM)</SelectItem>
+                          <SelectItem value="evening">Evening (5PM - 9PM)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.deliveryTime && <p className="text-red-500 text-sm">{errors.deliveryTime.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Payment Method</Label>
+                      <RadioGroup onValueChange={(value) => setValue("paymentMethod", value)}>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="credit" id="credit" />
+                          <Label htmlFor="credit">Credit Card</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="debit" id="debit" />
+                          <Label htmlFor="debit">Debit Card</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="paypal" id="paypal" />
+                          <Label htmlFor="paypal">PayPal</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="cash" id="cash" />
+                          <Label htmlFor="cash">Cash</Label>
+                        </div>
+                      </RadioGroup>
+                      {errors.paymentMethod && <p className="text-red-500 text-sm">{errors.paymentMethod.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="specialInstructions">Special Instructions (Optional)</Label>
+                      <Textarea id="specialInstructions" {...register("specialInstructions")} />
+                    </div>
+                    <Button type="submit" className="w-full bg-pink-500 hover:bg-pink-600 text-white">
+                      Confirm Order
+                    </Button>
+                  </form>
                 </div>
               </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Delivery Information</h3>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input id="fullName" {...register("fullName")} />
-                    {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input id="phone" {...register("phone")} />
-                    {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input id="address" {...register("address")} />
-                    {errors.address && <p className="text-red-500 text-sm">{errors.address.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Delivery Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                          )}>
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? format(date, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={(newDate) => {
-                            setDate(newDate)
-                            setValue("deliveryDate", newDate)
-                          }}
-                          initialFocus />
-                      </PopoverContent>
-                    </Popover>
-                    {errors.deliveryDate && <p className="text-red-500 text-sm">{errors.deliveryDate.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="deliveryTime">Delivery Time</Label>
-                    <Select onValueChange={(value) => setValue("deliveryTime", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select delivery time" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="morning">Morning (9AM - 12PM)</SelectItem>
-                        <SelectItem value="afternoon">Afternoon (12PM - 5PM)</SelectItem>
-                        <SelectItem value="evening">Evening (5PM - 9PM)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.deliveryTime && <p className="text-red-500 text-sm">{errors.deliveryTime.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Payment Method</Label>
-                    <RadioGroup onValueChange={(value) => setValue("paymentMethod", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="credit" id="credit" />
-                        <Label htmlFor="credit">Credit Card</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="debit" id="debit" />
-                        <Label htmlFor="debit">Debit Card</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="paypal" id="paypal" />
-                        <Label htmlFor="paypal">PayPal</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="cash" id="cash" />
-                        <Label htmlFor="paypal">Cash</Label>
-                      </div>
-                    </RadioGroup>
-                    {errors.paymentMethod && <p className="text-red-500 text-sm">{errors.paymentMethod.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="specialInstructions">Special Instructions (Optional)</Label>
-                    <Textarea id="specialInstructions" {...register("specialInstructions")} />
-                  </div>
-                  <Button type="submit" className="w-full bg-pink-500 hover:bg-pink-600 text-white">
-                    Confirm Order
-                  </Button>
-                </form>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
     </Suspense>
   );
 }

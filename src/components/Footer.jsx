@@ -1,16 +1,15 @@
 'use client'
 
 import Image from 'next/image';
-import { Search, ShoppingBag, ChevronRight, Instagram, Facebook, Twitter, MapPin, Phone, Mail, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { Instagram, Facebook, Twitter, MapPin, Phone, Mail, ArrowRight } from 'lucide-react';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white py-8"> {/* Adjusted padding */}
+    <footer className="bg-gray-900 text-white py-8">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           <div className="space-y-4">
@@ -31,12 +30,18 @@ export default function Footer() {
           <div>
             <h4 className="text-xl font-semibold mb-4 text-pink-400">Quick Links</h4>
             <ul className="space-y-2">
-              {['Home', 'Menu', 'About Us', 'Contact', 'FAQ'].map((item, index) => (
+              {[
+                { name: 'Home', path: '/' },
+                { name: 'Menu', path: '/menu' },
+                { name: 'About Us', path: '/about-us' },
+                { name: 'Contact', path: '/contact-us' },
+                { name: 'My Orders', path: '/user-orders' }
+              ].map((item, index) => (
                 <li key={index}>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors flex items-center group">
+                  <Link href={item.path} className="text-gray-400 hover:text-white transition-colors flex items-center group">
                     <ArrowRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {item}
-                  </a>
+                    {item.name}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -73,14 +78,17 @@ export default function Footer() {
             </form>
           </div>
         </div>
-        <div className="mt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center pt-4"> {/* Adjusted margin-top */}
+        <div className="mt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center pt-4">
           <p className="text-gray-400 text-sm">&copy; 2024 WKND Cakes. All rights reserved.</p>
           <div className="flex space-x-4 mt-4 md:mt-0">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">Privacy Policy</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">Terms of Service</a>
+            <Link href="/privacy-policy" className="text-gray-400 hover:text-white transition-colors text-sm">
+              Privacy Policy
+            </Link>
+            <Link href="/terms-of-service" className="text-gray-400 hover:text-white transition-colors text-sm">
+              Terms of Service
+            </Link>
           </div>
         </div>
       </div>
     </footer>
-  );
-}
+  );}

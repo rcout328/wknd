@@ -12,13 +12,15 @@ import Footer from './Footer';
 import Header from './Header';
 import SidebarMenu from './SidebarMenu';
 import { supabase } from "@/lib/supabaseClient"; // Import the Supabase client
+import LoginPromptModal from './LoginPromptModal'; // Import the modal
 
-const menuCategories = ['All', 'Cakes', 'Cupcakes', 'Pastries', 'Seasonal'];
+const menuCategories = ['All', 'Cakes', 'Cupcakes', 'Pastries'];
 
 function WkndCakeShop() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [menuItems, setMenuItems] = useState([]); // State to hold menu items
   const [isLoggedIn, setIsLoggedIn] = useState(false); // State to track login status
+  const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false); // State for the login prompt modal
 
   // Check for user email in local storage on mount
   useEffect(() => {
@@ -55,7 +57,7 @@ function WkndCakeShop() {
   const handleAddToCart = async (itemId) => {
     const storedEmail = localStorage.getItem('userEmail');
     if (!storedEmail) {
-      alert('You must be logged in to order items.');
+      setIsLoginPromptOpen(true); // Open the login prompt modal
       return;
     }
 
@@ -94,13 +96,15 @@ function WkndCakeShop() {
                   Order Now
                 </Button>
               </Link>
+              <Link href="/about-us">
               <Button
                 size="lg"
                 variant="outline"
-                className="text-pink-500 border-pink-500 hover:bg-pink-50">
+                className="text-pink-500 border-pink-500 hover:bg-pink-50 w-full">
                 Our Story
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
+              </Link>
             </div>
           </div>
           <div className="md:w-1/2 flex justify-center md:justify-end relative">
@@ -139,6 +143,10 @@ function WkndCakeShop() {
                   <CardContent className="p-4">
                     <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
                     <p className="text-gray-600 mb-4">{item.desc}</p>
+                   <div className="flex flex-row">
+                   <p className="text-gray-600 mb-4">$</p>
+                   <p className="text-gray-600 mb-4">{item.Price}</p>
+                   </div>
                     <Button className="w-full" onClick={() => handleAddToCart(item.id)}>Order Now</Button>
                   </CardContent>
                 </Card>
@@ -209,6 +217,7 @@ function WkndCakeShop() {
         </section>
       </main>
       <Footer />
+      <LoginPromptModal isOpen={isLoginPromptOpen} onClose={() => setIsLoginPromptOpen(false)} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Eye, EyeOff, Lock, Mail, User, ShieldCheck, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from "@/lib/supabaseClient";
+import validator from 'validator'; // Import the validator package
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,24 +18,55 @@ export function LoginRegisterAdminPageComponent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [loading, setLoading] = useState(true); // New loading state
+
+  const isValidEmail = (email) => {
+    return validator.isEmail(email) && email.endsWith('@gmail.com'); // Check for Gmail format
+  };
+
+  const isValidPassword = (password) => {
+    // Check for minimum length and complexity
+    return (
+      password.length >= 8 &&
+      validator.isStrongPassword(password, {
+        minLength: 8,
+        minLowercase: 1,
+        minUppercase: 1,
+        minNumbers: 1,
+        minSymbols: 1,
+      })
+    );
+  };
 
   useEffect(() => {
-    // Check local storage for email on mount
-    const storedEmail = localStorage.getItem('userEmail');
-    if (storedEmail) {
-      // Redirect to home or admin home based on stored email
-      if (storedEmail === 'admin123@gmail.com') {
-        window.location.href = '/admin-dashboard'; // Redirect to admin home
-      } else {
-        window.location.href = '/'; // Redirect to home
+    const checkUserStatus = () => {
+      const storedEmail = localStorage.getItem('userEmail');
+      if (storedEmail) {
+        // Redirect to home or admin home based on stored email
+        if (storedEmail === 'admin123@gmail.com') {
+          window.location.href = '/admin-dashboard'; // Redirect to admin home
+        } else {
+          window.location.href = '/'; // Redirect to home
+        }
       }
-    }
+      setLoading(false); // Set loading to false after checking
+    };
+
+    checkUserStatus();
   }, []);
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword)
 
   const handleLogin = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
+    if (!isValidEmail(email)) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+    if (!isValidPassword(password)) {
+      alert('Password must be at least 8 characters long and not a simple password like "12345".');
+      return;
+    }
     const { data, error } = await supabase
       .from('User')
       .select()
@@ -60,7 +92,15 @@ export function LoginRegisterAdminPageComponent() {
   }
 
   const handleRegister = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
+    if (!isValidEmail(email)) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+    if (!isValidPassword(password)) {
+      alert('Password must be at least 8 characters long and not a simple password like "12345".');
+      return;
+    }
     const { data, error } = await supabase
       .from('User')
       .insert([
@@ -92,18 +132,34 @@ export function LoginRegisterAdminPageComponent() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50">
+        <div className="loader">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md relative">
-        {/* Back Button */}
-        <Link href="/" className="absolute top-4 left-4">
-          <Button variant="ghost" className="text-pink-600">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-        </Link>
+        {/* Responsive Back Button */}
+        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8">
+          <Link href="/" passHref>
+            <Button
+              variant="ghost"
+              className="text-pink-600 p-2 sm:p-3"
+              aria-label="Go back to home"
+            >
+              <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="sr-only sm:not-sr-only sm:ml-2">Back</span>
+            </Button>
+          </Link>
+        </div>
         
-        <CardHeader className="space-y-1">
+        <CardHeader className="space-y-1 pt-16 sm:pt-20">
           <CardTitle className="text-3xl font-bold text-center">WKND Cakes</CardTitle>
           <CardDescription className="text-center">Login, create an account, or access admin panel</CardDescription>
         </CardHeader>
@@ -147,13 +203,10 @@ export function LoginRegisterAdminPageComponent() {
                       </button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="remember" />
-                    <label
-                      htmlFor="remember"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Remember me
-                    </label>
+                  <div className="flex items-center justify-between mt-4">
+                    <Link href="#" className="text-sm text-pink-500 hover:underline pl-1">
+                      Forgot password?
+                    </Link>
                   </div>
                 </div>
                 <Button type="submit" className="w-full mt-6 bg-pink-500 hover:bg-pink-600 text-white">Log in</Button>
@@ -271,32 +324,7 @@ export function LoginRegisterAdminPageComponent() {
             </TabsContent>
           </Tabs>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="flex items-center space-x-2">
-            <div className="bg-gray-200 h-px flex-grow" />
-            <span className="text-gray-500 text-sm">OR</span>
-            <div className="bg-gray-200 h-px flex-grow" />
-          </div>
-          <Button variant="outline" className="w-full">
-            <svg
-              className="mr-2 h-4 w-4"
-              aria-hidden="true"
-              focusable="false"
-              data-prefix="fab"
-              data-icon="google"
-              role="img"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 488 512">
-              <path
-                fill="currentColor"
-                d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-            </svg>
-            Continue with Google
-          </Button>
-          <div className="text-center text-sm">
-            <Link href="#" className="text-pink-500 hover:underline">Forgot password?</Link>
-          </div>
-        </CardFooter>
+    
       </Card>
     </div>
   );

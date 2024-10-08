@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabaseClient"; // Import the Supabase client
 import Header from './Header';
 import SidebarMenu from './SidebarMenu';
 import Footer from './Footer';
+import LoginPromptModal from './LoginPromptModal'; // Import the modal
 
 const menuCategories = ['All', 'Cakes', 'Cupcakes', 'Pastries', 'Seasonal'];
 
@@ -23,6 +24,7 @@ const Menu = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [menuItems, setMenuItems] = useState([]); // State to hold menu items
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false); // State for the login prompt modal
 
   // Fetch menu items from Supabase
   useEffect(() => {
@@ -78,7 +80,7 @@ const Menu = () => {
   const handleAddToCart = async (itemId) => {
     const storedEmail = localStorage.getItem('userEmail');
     if (!storedEmail) {
-      alert('You must be logged in to order items.');
+      setIsLoginPromptOpen(true); // Open the login prompt modal
       return;
     }
 
@@ -170,6 +172,7 @@ const Menu = () => {
         </div>
       </main>
       <Footer />
+      <LoginPromptModal isOpen={isLoginPromptOpen} onClose={() => setIsLoginPromptOpen(false)} />
     </div>
   );
 }
