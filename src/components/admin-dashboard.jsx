@@ -31,6 +31,7 @@ export function AdminDashboardComponent() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [deleteType, setDeleteType] = useState(''); // 'order' or 'menuItem'
+  const [swiggielink, setSwiggielink] = useState('');
 
   // State for order form fields
   const [orderFields, setOrderFields] = useState({
@@ -250,7 +251,13 @@ export function AdminDashboardComponent() {
       cat: item.cat,
       price: item.Price
     });
+    setSwiggielink(item.swiggielink || '');
     setIsEditMenuDialogOpen(true);
+  };
+
+  // Modify handleImageSelect to update the image URL directly
+  const handleImageUrlChange = (e) => {
+    setMenuFields(prev => ({ ...prev, image: e.target.value }));
   };
 
   const handleUpdateMenuItem = async (e) => {
@@ -263,6 +270,7 @@ export function AdminDashboardComponent() {
         image: menuFields.image,
         cat: menuFields.cat,
         Price: menuFields.price,
+        swiggielink: swiggielink
       })
       .eq('id', selectedMenuItem.id);
 
@@ -285,6 +293,7 @@ export function AdminDashboardComponent() {
         image: menuFields.image,
         cat: menuFields.cat,
         Price: menuFields.price,
+        swiggielink: swiggielink
       });
 
     if (error) {
@@ -662,12 +671,22 @@ export function AdminDashboardComponent() {
                 <Label htmlFor={`edit-menu-${key}`}>{key.charAt(0).toUpperCase() + key.slice(1)}</Label>
                 <Input
                   id={`edit-menu-${key}`}
-                  type={key === 'price' ? 'number' : 'text'}
+                  type={key === 'price' ? 'number' : key === 'image' ? 'url' : 'text'}
                   value={value}
-                  onChange={(e) => setMenuFields({ ...menuFields, [key]: key === 'price' ? parseFloat(e.target.value) : e.target.value })}
+                  onChange={key === 'image' ? handleImageUrlChange : (e) => setMenuFields({ ...menuFields, [key]: key === 'price' ? parseFloat(e.target.value) : e.target.value })}
+                  placeholder={key === 'image' ? 'Enter image URL' : ''}
                 />
               </div>
             ))}
+            <div>
+              <Label htmlFor="edit-menu-swiggielink">Swiggy Link</Label>
+              <Input
+                id="edit-menu-swiggielink"
+                type="text"
+                value={swiggielink}
+                onChange={(e) => setSwiggielink(e.target.value)}
+              />
+            </div>
             <DialogFooter>
               <Button type="submit">Update Menu Item</Button>
             </DialogFooter>
@@ -690,12 +709,22 @@ export function AdminDashboardComponent() {
                 <Label htmlFor={`add-menu-${key}`}>{key.charAt(0).toUpperCase() + key.slice(1)}</Label>
                 <Input
                   id={`add-menu-${key}`}
-                  type={key === 'price' ? 'number' : 'text'}
+                  type={key === 'price' ? 'number' : key === 'image' ? 'url' : 'text'}
                   value={value}
-                  onChange={(e) => setMenuFields({ ...menuFields, [key]: key === 'price' ? parseFloat(e.target.value) : e.target.value })}
+                  onChange={key === 'image' ? handleImageUrlChange : (e) => setMenuFields({ ...menuFields, [key]: key === 'price' ? parseFloat(e.target.value) : e.target.value })}
+                  placeholder={key === 'image' ? 'Enter image URL' : ''}
                 />
               </div>
             ))}
+            <div>
+              <Label htmlFor="add-menu-swiggielink">Swiggy Link</Label>
+              <Input
+                id="add-menu-swiggielink"
+                type="text"
+                value={swiggielink}
+                onChange={(e) => setSwiggielink(e.target.value)}
+              />
+            </div>
             <DialogFooter>
               <Button type="submit">Add Menu Item</Button>
             </DialogFooter>

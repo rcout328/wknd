@@ -36,12 +36,6 @@ export default function SidebarMenu({ isOpen, onClose }) {
             <li><Link href="/" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Home</Link></li>
             <li><Link href="/about-us" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">About Us</Link></li>
             <li><Link href="/menu" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Menu</Link></li>
-            {isLoggedIn && (
-              <li><Link href="/user-orders" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">My Orders</Link></li>
-            )}
-            {!isLoggedIn && (
-              <li><Link href="/login-register" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Login/Register</Link></li>
-            )}
             <li><Link href="/contact-us" className="text-lg font-semibold text-pink-800 hover:text-pink-500 transition-colors">Contact Us</Link></li>
           </ul>
         </nav>

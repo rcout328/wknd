@@ -29,13 +29,20 @@ export function AdvancedCartComponent() {
   const [orderId, setOrderId] = useState(null);
   const [isCheckoutClicked, setIsCheckoutClicked] = useState(false);
   const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   useEffect(() => {
     if (userEmail) {
       fetchCartItems(userEmail);
     } else {
-      setIsLoginPromptOpen(true);
+      const localCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      setCartItems(localCartItems);
+      calculateTotalPrice(localCartItems);
     }
   }, [userEmail]);
 
@@ -86,34 +93,50 @@ export function AdvancedCartComponent() {
     );
     setCartItems(updatedItems);
     calculateTotalPrice(updatedItems);
+
+    if (!userEmail) {
+      localStorage.setItem('cartItems', JSON.stringify(updatedItems));
+    }
   };
 
   const removeItem = async (itemId) => {
-    const { error } = await supabase
-      .from('Cart')
-      .delete()
-      .eq('item_id', itemId)
-      .eq('sid', userEmail);
+    if (userEmail) {
+      const { error } = await supabase
+        .from('Cart')
+        .delete()
+        .eq('item_id', itemId)
+        .eq('sid', userEmail);
 
-    if (error) {
-      console.error('Error removing item from cart:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove item from cart. Please try again.",
-        variant: "destructive",
-      });
+      if (error) {
+        console.error('Error removing item from cart:', error);
+        toast({
+          title: "Error",
+          description: "Failed to remove item from cart. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        const updatedItems = cartItems.filter(item => item.id !== itemId);
+        setCartItems(updatedItems);
+        calculateTotalPrice(updatedItems);
+      }
     } else {
       const updatedItems = cartItems.filter(item => item.id !== itemId);
       setCartItems(updatedItems);
       calculateTotalPrice(updatedItems);
+      localStorage.setItem('cartItems', JSON.stringify(updatedItems));
     }
   };
 
   const handleCheckout = async () => {
-    if (!userEmail || cartItems.length === 0) {
+    if (!userEmail) {
+      setIsLoginPromptOpen(true);
+      return;
+    }
+
+    if (cartItems.length === 0) {
       toast({
         title: "Error",
-        description: "Your cart is empty or you are not logged in.",
+        description: "Your cart is empty.",
         variant: "destructive",
       });
       return;
@@ -189,8 +212,8 @@ export function AdvancedCartComponent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
-      <Header />
-      <SidebarMenu />
+      <Header toggleSidebar={toggleSidebar} />
+      <SidebarMenu isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         <h1 className="text-3xl sm:text-4xl font-bold text-center mb-8 sm:mb-12">Your Sweet Cart</h1>
         
@@ -302,7 +325,15 @@ export function AdvancedCartComponent() {
             </Alert>
           </div>
         </div>
-        <LoginPromptModal isOpen={isLoginPromptOpen} onClose={() => setIsLoginPromptOpen(false)} />
+        <LoginPromptModal 
+          isOpen={isLoginPromptOpen} 
+          onClose={() => setIsLoginPromptOpen(false)}
+          onLogin={() => {
+            setIsLoginPromptOpen(false);
+            // Redirect to login page or show login form
+            router.push('/login-register');
+          }}
+        />
       </main>
       <Footer />
     </div>

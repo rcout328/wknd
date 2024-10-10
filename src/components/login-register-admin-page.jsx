@@ -165,9 +165,7 @@ export function LoginRegisterAdminPageComponent() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-1">
               <TabsTrigger value="admin">Admin</TabsTrigger>
             </TabsList>
             <TabsContent value="login">

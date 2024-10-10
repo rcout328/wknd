@@ -36,10 +36,7 @@ export function AboutUsComponent() {
               <p className="text-lg text-gray-700">
                 Our mission is simple: to spread joy through delicious, handcrafted cakes. Every creation is a labor of love, made with the finest ingredients and a dash of magic.
               </p>
-              <Button className="bg-pink-500 hover:bg-pink-600 text-white">
-                Our Story
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
+              {/* The "Our Story" button has been removed from here */}
             </div>
           </div>
         </section>
@@ -68,10 +65,8 @@ export function AboutUsComponent() {
           <h2 className="text-4xl font-bold text-center mb-12">Our Achievements</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { number: "10K+", label: "Happy Customers" },
-              { number: "500+", label: "Cake Designs" },
-              { number: "50+", label: "Awards Won" },
-              { number: "5", label: "Locations" }
+              { number: "50+", label: "Happy Customers" },
+              { number: "20+", label: "Cake Designs" },
             ].map((stat, index) => (
               <div key={index} className="bg-white p-8 rounded-xl shadow-md text-center">
                 <div className="text-4xl font-bold text-pink-500 mb-2">{stat.number}</div>

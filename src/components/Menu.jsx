@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { ChevronRight, ShoppingCart } from 'lucide-react';
+import { ChevronRight, ExternalLink } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,7 +15,9 @@ import SidebarMenu from './SidebarMenu';
 import Footer from './Footer';
 import LoginPromptModal from './LoginPromptModal'; // Import the modal
 
-const menuCategories = ['All', 'Cakes', 'Cupcakes', 'Pastries', 'Seasonal'];
+const menuCategories = ['All', 'Cupcake', 'Browniee', 'CheesCake', 'Swiss Roll', 'Bundtt Cake', 'Bomboloni',
+  'Muffins'
+];
 
 const Menu = () => {
   const [activeCategory, setActiveCategory] = useState('All');
@@ -24,7 +26,12 @@ const Menu = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [menuItems, setMenuItems] = useState([]); // State to hold menu items
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false); // State for the login prompt modal
+  const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false); // We'll keep this for now, but won't use it
+
+  // Add this function to toggle the sidebar
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   // Fetch menu items from Supabase
   useEffect(() => {
@@ -59,48 +66,6 @@ const Menu = () => {
     (activeCategory === 'All' || item.cat === activeCategory) &&
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const addToCart = (itemId) => {
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === itemId);
-      if (existingItem) {
-        return prevCart.map(item => 
-          item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item);
-      } else {
-        return [...prevCart, { id: itemId, quantity: 1 }];
-      }
-    });
-  };
-
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-
-  // Function to handle adding item to cart
-  const handleAddToCart = async (itemId) => {
-    const storedEmail = localStorage.getItem('userEmail');
-    if (!storedEmail) {
-      setIsLoginPromptOpen(true); // Open the login prompt modal
-      return;
-    }
-
-    // Insert the item into the Cart table
-    const { error: insertError } = await supabase
-      .from('Cart')
-      .insert([
-        { item_id: itemId, sid: storedEmail }
-      ]);
-
-    if (insertError) {
-      console.error('Error adding item to cart:', insertError);
-      alert('Failed to add item to cart. Please try again.');
-    } else {
-      console.log('Item added to cart successfully');
-      alert('Item added to cart successfully!');
-      // Update the local cart state
-      addToCart(itemId);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
@@ -156,23 +121,24 @@ const Menu = () => {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-xl font-semibold">{item.name}</h3>
-                  <span className="text-lg font-bold text-pink-500">${item.Price.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-pink-500">₹{item.Price.toFixed(2)}</span>
                 </div>
                 <p className="text-gray-600 mb-4">{item.desc}</p>
-                <Button
-                  size="sm"
-                  className="w-full bg-pink-500 hover:bg-pink-600 text-white"
-                  onClick={() => handleAddToCart(item.id)}>
-                  Order Now
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
+                <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                    onClick={() => window.open(item.swiggielink, '_blank')}>
+                    Order on Swiggy
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       </main>
       <Footer />
-      <LoginPromptModal isOpen={isLoginPromptOpen} onClose={() => setIsLoginPromptOpen(false)} />
     </div>
   );
 }

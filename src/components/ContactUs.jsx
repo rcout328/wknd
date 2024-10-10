@@ -106,11 +106,11 @@ const ContactUs = () => {
             <div className="space-y-4">
               <div className="flex items-start">
                 <MapPin className="h-6 w-6 text-pink-500 mr-3 flex-shrink-0" />
-                <p className="text-gray-600">123 Cake Street, Dessert City, 12345</p>
+                <p className="text-gray-600">05,GROUND FLOOR SHOP,DEVPREET COMPLEX,NFD CIRCLE,AHMEDABAD 380054</p>
               </div>
               <div className="flex items-center">
                 <Phone className="h-6 w-6 text-pink-500 mr-3" />
-                <p className="text-gray-600">(123) 456-7890</p>
+                <p className="text-gray-600">9427083584,6354423444</p>
               </div>
               <div className="flex items-center">
                 <Mail className="h-6 w-6 text-pink-500 mr-3" />
@@ -119,8 +119,7 @@ const ContactUs = () => {
               <div className="flex items-start">
                 <Clock className="h-6 w-6 text-pink-500 mr-3 flex-shrink-0" />
                 <div>
-                  <p className="text-gray-600">Mon-Fri: 9:00 AM - 6:00 PM</p>
-                  <p className="text-gray-600">Sat-Sun: 10:00 AM - 4:00 PM</p>
+                  <p className="text-gray-600">Mon-Sun: 11:00 AM - 12:00 AM</p>
                 </div>
               </div>
             </div>
