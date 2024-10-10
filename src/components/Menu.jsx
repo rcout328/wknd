@@ -15,10 +15,6 @@ import SidebarMenu from './SidebarMenu';
 import Footer from './Footer';
 import LoginPromptModal from './LoginPromptModal'; // Import the modal
 
-const menuCategories = ['All', 'Cupcake', 'Browniee', 'CheesCake', 'Swiss Roll', 'Bundtt Cake', 'Bomboloni',
-  'Muffins'
-];
-
 const Menu = () => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,6 +58,9 @@ const Menu = () => {
     }
   }, []);
 
+  // Extract unique categories from menu items
+  const uniqueCategories = ['All', ...new Set(menuItems.map(item => item.cat))];
+
   const filteredItems = menuItems.filter(item => 
     (activeCategory === 'All' || item.cat === activeCategory) &&
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -76,9 +75,9 @@ const Menu = () => {
 
         <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <ScrollArea className="w-full md:w-auto">
-            <Tabs defaultValue="All" className="w-full md:w-auto">
+            <Tabs defaultValue="All" className="w-full">
               <TabsList>
-                {menuCategories.map((category) => (
+                {uniqueCategories.map((category) => (
                   <TabsTrigger
                     key={category}
                     value={category}
